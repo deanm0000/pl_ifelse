@@ -95,4 +95,4 @@ print(time.time()-strt)
 # 5.21 seconds
 ```
 
-So in this example doing arctan2 raised to the power of 2.45 and then taking the sin of that takes about 5.27 seconds. The problem is contrived so that `pl_if` only do the hard problem on about a fifth of the data yet it still takes 54% of the time. Not too surpringly, if I bump up the conditional to `c.a<=2` so that it's doing slightly more than half of the data, it takes 5.27 seconds. Doing all the math sequentially instead of in parallel as when/then does is a niche case
+So in this example doing arctan2 raised to the power of 2.45 and then taking the sin of that takes about 5.26 seconds. The problem is contrived so that `pl_if` only does the hard problem on about a fifth of the data yet it still takes ~54% of the time. Not too surpringly, if I bump up the conditional to `c.a<=2` so that it's doing slightly more than half of the data, it takes 5.27 seconds. Doing all the math sequentially instead of in parallel as when/then is going to take a very niche case. 
