@@ -1,0 +1,27 @@
+[build-system]
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "pl_ifelse"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+dynamic = ["version"]
+
+[tool.maturin]
+strip = true
+python-source = "."
+features = ["pyo3/extension-module"]
+module-name = "pl_ifelse._pl_ifelse"
+
+[tool.ruff]
+line-length = 100
+fix = true
+src = ["python"]
+
+[tool.ruff.format]
+docstring-code-format = true
