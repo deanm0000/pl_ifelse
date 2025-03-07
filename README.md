@@ -58,3 +58,41 @@ On the python side there's the `pl_if` function which returns the `IF` class. Th
 When `otherwise` is called, it needs to return `register_plugin_function` with a list of `args` which will be the column data and a serializable set of kwargs. Unfortunately, the args can't just be `pl.all` so it needs to inspect all the expressions to generate a concrete list of columns. To get the expressions to the plugin it needs to serialize them into json. It turns the `dtype` that you enter into a `pl.lit(None, dtype)` which is inserted as the first member of `args`. The plugin can then tell the main polars thread that its output will be the same dtype as the first column polars wants to hand over to it.
 
 Once the plugin gets the data, it reconstructs a df adding a row index column, partitions it by the first condition, does the first operation on the true partition and puts those results in a Vec. It then repeats that process for each subsequent if/then starting with the previous iteration's false partition until there are either no more rows or no more conditions. When all the results are in, it sorts it by the row index and returns the Series to the main polars thread.
+
+## How it performs....not well
+
+
+I've got to make a pretty contrived example for this to perform well. Here's an example to make it faster than when then
+
+```python
+import polars as pl
+from polars import col as c
+from pl_ifelse import pl_if
+import numpy as np
+import time
+
+#Setup
+df = pl.DataFrame(
+    {"a": np.random.uniform(0,4,50_000_000), 
+     "b": np.random.standard_normal(50_000_000),
+     "c": np.random.standard_normal(50_000_000)
+     }
+).with_columns(c.a.round(0).cast(pl.Int8))
+
+strt=time.time()
+df.select((pl.arctan2("a","b")**2.45).sin())
+print(time.time()-strt)
+# 5.26 seconds
+
+strt=time.time()
+df.select(pl_if(c.a==0).then((pl.arctan2("b","c")**2.45).sin()).otherwise(c.b, dtype=pl.Float64))
+print(time.time()-strt)
+# 2.83 seconds
+
+strt=time.time()
+df.select(pl.when(c.a==0).then((pl.arctan2("b","c")**2.45).sin()).otherwise(c.b))
+print(time.time()-strt)
+# 5.21 seconds
+```
+
+So in this example doing arctan2 raised to the power of 2.45 and then taking the sin of that takes about 5.27 seconds. The problem is contrived so that `pl_if` only do the hard problem on about a fifth of the data yet it still takes 54% of the time. Not too surpringly, if I bump up the conditional to `c.a<=2` so that it's doing slightly more than half of the data, it takes 5.27 seconds. Doing all the math sequentially instead of in parallel as when/then does is a niche case
