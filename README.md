@@ -45,8 +45,8 @@ shape: (10, 3)
 └─────┴──────┴───────┘
 ```
 
-There are two syntax differences are:
-1. It always has to end in an `otherwise`. Even ifyour if/then is logically complete the `otherwise` method is where it converts the chain into a polars Expr.
+There are two syntax differences:
+1. It always has to end in an `otherwise`. Even if your if/then is logically complete the `otherwise` method is where it converts the chain into a polars Expr.
 2. You have to tell it what the dtype is of the output.
 
 A usability limitation: The plugin is doing the computation so the operations won't be in a lazy diagram. It's also set to be an elementwise return so if you're expecting aggregates, it might be weird results. I haven't tested it fully.
